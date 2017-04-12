@@ -112,7 +112,7 @@ Try {
 		[string]$installPhase = 'Pre-Installation'
 
 		## Show Welcome Message, close Internet Explorer if required, allow up to 3 deferrals, verify there is enough disk space to complete the install, and persist the prompt
-		Show-InstallationWelcome -CloseApps 'iexplore' -AllowDefer -DeferTimes 3 -CheckDiskSpace -PersistPrompt
+		Show-InstallationWelcome -CloseApps 'iexplore' -CheckDiskSpace -PersistPrompt
 
 		## Show Progress Message (with the default message)
 		Show-InstallationProgress
@@ -152,7 +152,7 @@ Try {
 		[string]$installPhase = 'Pre-Uninstallation'
 
 		## Show Welcome Message, close Word with a 60 second countdown before automatically closing
-		Show-InstallationWelcome -CloseApps 'winword' -CloseAppsCountdown 60
+		Show-InstallationWelcome -CloseApps 'winword,excel,powerpnt' -CloseAppsCountdown 60
 
 		## Show Progress Message (with the default message)
 		Show-InstallationProgress
@@ -180,6 +180,14 @@ Try {
 		[string]$installPhase = 'Post-Uninstallation'
 
 		## <Perform Post-Uninstallation tasks here>
+		## Remove SMART Ink Office add-ins
+		[scriptblock]$HKCURegistrySettings = {
+			Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Office\Excel\Addins\SMARTInk-Excel-All' -SID $UserProfile.SID -ContinueOnError $true
+			Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Office\PowerPoint\Addins\SMARTInk-PowerPoint-All' -SID $UserProfile.SID -ContinueOnError $true
+			Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Office\Word\Addins\SMARTInk-Word-All' -SID $UserProfile.SID -ContinueOnError $true
+		}
+		Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistrySettings
+		Set-RegistryKey -Key 'HKEY_LOCAL_MACHINE\SOFTWARE\MSUDenver' -Name 'SMART Ink Add-Ins' -Value '0' -Type 'DWord'
 
 
 	}
@@ -202,8 +210,8 @@ Catch {
 # SIG # Begin signature block
 # MIIU4wYJKoZIhvcNAQcCoIIU1DCCFNACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD8h2tpI6/Z74E4
-# xdlNT/As/SYa4rQlrOgVfnja/26BnqCCD4cwggQUMIIC/KADAgECAgsEAAAAAAEv
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAXR8gHZ5MFVLqs
+# xVGz5YNDWfoOozdEFe9uAbqBYYlQMqCCD4cwggQUMIIC/KADAgECAgsEAAAAAAEv
 # TuFS1zANBgkqhkiG9w0BAQUFADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xv
 # YmFsU2lnbiBudi1zYTEQMA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFs
 # U2lnbiBSb290IENBMB4XDTExMDQxMzEwMDAwMFoXDTI4MDEyODEyMDAwMFowUjEL
@@ -290,26 +298,26 @@ Catch {
 # FgNlZHUxGTAXBgoJkiaJk/IsZAEZFgltc3VkZW52ZXIxFTATBgoJkiaJk/IsZAEZ
 # FgV3aW5hZDEZMBcGA1UEAxMQd2luYWQtVk1XQ0EwMS1DQQITfwAAACITuo77mvOv
 # 9AABAAAAIjANBglghkgBZQMEAgEFAKBmMBgGCisGAQQBgjcCAQwxCjAIoAKAAKEC
-# gAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEIAZD
-# Ceht4MhXkYbzj6x/SEZ9VHZGXSjaZgyrpP30GrCUMA0GCSqGSIb3DQEBAQUABIIB
-# AIjgUUgsfW0qQOrZs9fvUtv8FXWM1NKCNwavcR9jNDW0CNVSGa3yE2p7pN2KTbv5
-# NgR9+RoRpJmpKtd2zbOZsl6C7rh2OmZZZr5vDPyAGHRmjgCUgvuJA9RPShpupiNR
-# IxMomu70M+W5ql3wxGbAoPeadBKhJUBHnppj+15g29mJmTNgaITMU0lPVGcT/gU1
-# ugGmjLWi1414dMKGHHskLqnXfepVouGIQVEOVGEJ5/9pNuyKk+kvv1Be9yNPvsfJ
-# YGiKXKq/6JTXOpRuig2WF3JX/EOFdkf0W5Bwhw35M0SJ2olJcjM85uB031154l/s
-# Hm2FdBS+z7iwMKVWkqAIqROhggKiMIICngYJKoZIhvcNAQkGMYICjzCCAosCAQEw
+# gAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEIIod
+# Da99koWtfHzwziG8aWxfzt5/fe9vRcsh5OXXWPXvMA0GCSqGSIb3DQEBAQUABIIB
+# AANrMrkqZa6+uWqbrwAgHW4A7UcnkO/pnd+78N5A+3QRAvb2CGhCyFHmiZ3VC50I
+# Jl4XlxGBk9yEW79z75Xkb79E9EUMHFvdC7+3p6PJqTs1CnI9jiqFOEaMtQumpVI+
+# qsW7x/7Iy9+zVEmbbkamYLEQaTJXiNriuDImjTlLF5GGyXVGlHTnfgSgL46CfGZ+
+# hKCig83iQto4Fbp5khIhWZCgC3htRK1tmn7sAGn0Udr8fPjxfBR1z5Q+7kZ7wSHR
+# NNB/joEy6mGW72EFEA1G5tCJpiJuSEKjH3Clh6vprU/0vp8kRjBg2p0ri9wbPOn2
+# 3ORfVLVciLmzf6sfvWcBKwKhggKiMIICngYJKoZIhvcNAQkGMYICjzCCAosCAQEw
 # aDBSMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEoMCYG
 # A1UEAxMfR2xvYmFsU2lnbiBUaW1lc3RhbXBpbmcgQ0EgLSBHMgISESHWmadklz7x
 # +EJ+6RnMU0EUMAkGBSsOAwIaBQCggf0wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
-# ATAcBgkqhkiG9w0BCQUxDxcNMTcwMjIyMTYxMTAyWjAjBgkqhkiG9w0BCQQxFgQU
-# uIHly4QnYlXSBfHJqoe6G6rUvcMwgZ0GCyqGSIb3DQEJEAIMMYGNMIGKMIGHMIGE
+# ATAcBgkqhkiG9w0BCQUxDxcNMTcwNDEyMTYwNDI3WjAjBgkqhkiG9w0BCQQxFgQU
+# acYxqyssd+8RLqSNL3k2Ttfz/38wgZ0GCyqGSIb3DQEJEAIMMYGNMIGKMIGHMIGE
 # BBRjuC+rYfWDkJaVBQsAJJxQKTPseTBsMFakVDBSMQswCQYDVQQGEwJCRTEZMBcG
 # A1UEChMQR2xvYmFsU2lnbiBudi1zYTEoMCYGA1UEAxMfR2xvYmFsU2lnbiBUaW1l
 # c3RhbXBpbmcgQ0EgLSBHMgISESHWmadklz7x+EJ+6RnMU0EUMA0GCSqGSIb3DQEB
-# AQUABIIBAEiA0JyLKIZlAgaJUK+0IJeEKcMK8W6PLsFaIjwmGdnQ5NNktiz34D3E
-# O7QFYOxyWVuYhVVBYE9hb4P89GV+ZNVB0XBkeX2rTJm5BiraT+gZw64LJLFovlaD
-# 0Qkft6CmisdqV6V8Ne4x1HQ/uiwV1ncyCq4WURmYyHzWiGUfntniXK8ehp98Wimh
-# 3Zk/HwGrXeSfEul+rem/iaZueuvfAmlKBYlm/fTBPaN6QReBz7if9kGX+j3Pybn3
-# i3dje2L6BEz3cOFNnBZXXcKaxBnTx3EYulh9fHhXvKaSNjUpSG7PWpThAhlBDd3R
-# QL7va8yrIucxTp8k7tvZCvwle+kFYzg=
+# AQUABIIBAEoz+VQ8mMutom6IRAR+WNLZ6FbmPWWjzV9Ha+X3DKJiGtgggWhqJwbd
+# vSfNqK7/uAs1dkmn3qrUyIPmZ4X38QRYFm4rPdEn66X5s8wSAgMvjchs+QmMVpxQ
+# KSANvoAw/RuFCwkX7hBMpjnSeKkJ1FrrA+4hGnyziCjf4F+G8yDNWwiH/T4+u8iX
+# m4ziK0mO3EcfSCGDOxgPmcXYbSZWI/ynmS5K2aTeN13NY1UCygfrq0YtKmlO++3F
+# yxO3zRyPhDtVCttWif0t3OFj4Zaz7jY/KpVRkuiaVa8HpLZMzDWL0zxS8iA2arW5
+# 80Ls5MQAGOg/bhPZrkSNgmF+tdPaoaU=
 # SIG # End signature block
